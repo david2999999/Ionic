@@ -13,7 +13,7 @@ export class RecipesService {
       ingredients: ['French Fries', 'Pork Meat', 'Salad']
     },
     {
-      id: 'r1',
+      id: 'r2',
       title: "Spaghetti",
       imageUrl: "https://www.foodiecrush.com/wp-content/uploads/2017/09/My-Moms-Homemade-Spaghetti-and-Meat-Sauce-foodiecrush.com-017-683x1024-1.jpg",
       ingredients: ['Spaghetti', 'Meat', 'Tomato']
@@ -30,5 +30,11 @@ export class RecipesService {
     return {...this.recipes.find(recipe => {
       return recipe.id === recipeId;
     })};
+  }
+
+  deleteRecipe(recipeId: string) {
+    this.recipes = this.recipes.filter(recipe => {
+      return recipe.id !== recipeId;
+    });
   }
 }
