@@ -10,12 +10,14 @@ import {MenuController} from "@ionic/angular";
 })
 export class DiscoverPage implements OnInit {
   places: Place[];
+  listedLoadedPlaces: Place[];
 
   constructor(private placesService: PlacesService,
               private menuController: MenuController) { }
 
   ngOnInit() {
     this.places = this.placesService.places;
+    this.listedLoadedPlaces = this.places.slice(1);
   }
 
   // onOpenMenu() {
