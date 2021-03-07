@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {ModalController, NavController} from "@ionic/angular";
+import {ActionSheetController, ModalController, NavController} from "@ionic/angular";
 import {PlacesService} from "../../places.service";
 import {Place} from "../../place.model";
 import {CreateBookingComponent} from "../../../bookings/create-booking/create-booking.component";
@@ -16,7 +16,8 @@ export class PlaceDetailPage implements OnInit {
   constructor(private navCtrl: NavController,
               private route: ActivatedRoute,
               private placesService: PlacesService,
-              private modalController: ModalController) { }
+              private modalController: ModalController,
+              private actionSheetController: ActionSheetController) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(paramMap => {
@@ -30,6 +31,34 @@ export class PlaceDetailPage implements OnInit {
   }
 
   onBookPlace() {
+    this.actionSheetController.create({
+      header: 'Choose an Action',
+      buttons: [
+        {
+          text: 'Select Date',
+          handler: () => {
+            this.openBookingModal('select');
+          }
+        },
+        {
+          text: 'Random Date',
+          handler: () => {
+            this.openBookingModal('random');
+          }
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        }
+      ]
+    }).then(actionSheetEl => {
+      actionSheetEl.present();
+    });
+  }
+
+  openBookingModal(mode: 'select' | 'random') {
+    console.log(mode);
+
     this.modalController.create({
       component: CreateBookingComponent,
       componentProps: {
