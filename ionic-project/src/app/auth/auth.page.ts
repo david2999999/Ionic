@@ -44,7 +44,7 @@ export class AuthPage implements OnInit {
     const password = form.value.password;
 
     if (this.isLogin) {
-
+      this.onLogin();
     } else {
 
     }
