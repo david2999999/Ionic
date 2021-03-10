@@ -11,7 +11,7 @@ import {NgForm} from "@angular/forms";
 export class CreateBookingComponent implements OnInit {
   @Input() selectedPlace: Place;
   @Input() selectedMode: 'select' | 'random';
-  @ViewChild('f') form: NgForm;
+  @ViewChild('f', { static: true }) form: NgForm;
   startDate: string;
   endDate: string;
 
@@ -41,9 +41,9 @@ export class CreateBookingComponent implements OnInit {
     this.modalController.dismiss({
       firstName: this.form.value['first-name'],
       lastName: this.form.value['last-name'],
-      guestNumber: this.form.value['guest-number'],
-      startDate: this.form.value['date-from'],
-      endDate: this.form.value['date-to']
+      guestNumber: +this.form.value['guest-number'],
+      startDate: new Date(this.form.value['date-from']),
+      endDate: new Date(this.form.value['date-to'])
     }, 'confirm');
   }
 
