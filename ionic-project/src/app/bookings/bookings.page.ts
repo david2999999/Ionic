@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {BookingService} from "./booking.service";
 import {Booking} from "./booking.model";
-import {IonItemSliding} from "@ionic/angular";
+import {IonItemSliding, LoadingController} from "@ionic/angular";
 import {Subscription} from "rxjs";
 
 @Component({
@@ -13,7 +13,8 @@ export class BookingsPage implements OnInit, OnDestroy {
   bookings: Booking[];
   private bookingSub: Subscription;
 
-  constructor(private bookingsService: BookingService) { }
+  constructor(private bookingsService: BookingService,
+              private loadingController: LoadingController) { }
 
   ngOnInit() {
     this.bookingSub = this.bookingsService.bookings.subscribe(bookings => {
@@ -21,8 +22,17 @@ export class BookingsPage implements OnInit, OnDestroy {
     });
   }
 
-  onCancelBooking(id: string, slidingEl: IonItemSliding) {
+  onCancelBooking(bookingId: string, slidingEl: IonItemSliding) {
     slidingEl.close();
+    this.loadingController.create({
+      message: 'Cancelling'
+    }).then(loadingEl => {
+      loadingEl.present();
+
+      this.bookingsService.cancelBook(bookingId).subscribe(() => {
+        loadingEl.dismiss();
+      });
+    });
   }
 
   ngOnDestroy(): void {
