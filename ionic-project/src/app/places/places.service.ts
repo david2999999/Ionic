@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {Place} from "./place.model";
 import {AuthService} from "../auth/auth.service";
 import {BehaviorSubject} from "rxjs";
-import {delay, map, take, tap} from "rxjs/operators";
+import {delay, map, switchMap, take, tap} from "rxjs/operators";
 import {HttpClient} from "@angular/common/http";
 
 @Injectable({
@@ -54,19 +54,24 @@ export class PlacesService {
   addPlace(title: string, description: string, price: number,
            dateFrom: Date, dateTo: Date) {
       const newPlace = new Place(Math.random().toString(), title, description,
-        "https://i.pinimg.com/originals/88/1e/1d/881e1dc65eebd686b254da0e55ccdc6a.jpg",
+        "https://static.wikia.nocookie.net/cyberpunk/images/1/1c/NC-Profile-2077-Placeholder.jpg/revision/latest?cb=20200501024902",
         price, dateFrom, dateTo, this.authService.userId);
 
-      return this.http.post('https://ionic-angular-4a8f8-default-rtdb.firebaseio.com/offered-places.json',
+      return this.http.post<{name: string}>('https://ionic-angular-4a8f8-default-rtdb.firebaseio.com/offered-places.json',
         {
           ...newPlace,
           id: null
         }
       ).pipe(
-        tap(resData => {
-          console.log(resData);
-        }
-      ));
+        switchMap(resData => {
+          newPlace.id = resData.name;
+          return this.places;
+        }),
+        take(1),
+        tap(places => {
+          this._places.next(places.concat(newPlace));
+        })
+      );
   }
 
   updatePlace(placeId: string, title: string, description: string) {
