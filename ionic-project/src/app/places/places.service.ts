@@ -30,7 +30,7 @@ export class PlacesService {
   }
 
   fetchPlaces() {
-    return this.http.get<{[key: string]: PlaceData}>(this.BASE_URL + '/offered-places.json')
+    return this.http.get<{[key: string]: PlaceData}>(`${this.BASE_URL}/offered-places.json`)
       .pipe(
         map(resData => {
           const places = [];
@@ -62,7 +62,7 @@ export class PlacesService {
         "https://static.wikia.nocookie.net/cyberpunk/images/1/1c/NC-Profile-2077-Placeholder.jpg/revision/latest?cb=20200501024902",
         price, dateFrom, dateTo, this.authService.userId);
 
-      return this.http.post<{name: string}>(this.BASE_URL + '/offered-places.json',
+      return this.http.post<{name: string}>(`${this.BASE_URL}/offered-places.json`,
         {
           ...newPlace,
           id: null
@@ -80,15 +80,22 @@ export class PlacesService {
   }
 
   updatePlace(placeId: string, title: string, description: string) {
+    let updatedPlaces: Place[];
+
     return this.places.pipe(
       take(1),
-      delay(1000),
-      tap(places => {
+      switchMap(places => {
         const updatedPlaceIndex = places.findIndex(place => place.id === placeId);
-        const updatedPlaces = [...places];
+        updatedPlaces = [...places];
         const oldPlace = updatedPlaces[updatedPlaceIndex];
         updatedPlaces[updatedPlaceIndex] = new Place(oldPlace.id, title, description,
           oldPlace.imageUrl, oldPlace.price, oldPlace.availableFrom, oldPlace.availableTo, oldPlace.userId);
+
+        return this.http.put(`${this.BASE_URL}/offered-places/${placeId}.json`,
+          {...updatedPlaces[updatedPlaceIndex], id: null}
+        )
+      }),
+      tap(() => {
         this._places.next(updatedPlaces);
       })
     );
