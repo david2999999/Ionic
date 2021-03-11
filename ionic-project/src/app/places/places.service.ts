@@ -5,44 +5,49 @@ import {BehaviorSubject} from "rxjs";
 import {delay, map, switchMap, take, tap} from "rxjs/operators";
 import {HttpClient} from "@angular/common/http";
 
+interface PlaceData {
+  availableFrom: string;
+  availableTo: string;
+  description: string;
+  imageUrl: string;
+  price: number,
+  title: string;
+  userId: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class PlacesService {
-  private _places = new BehaviorSubject<Place[]>(
-    [
-      new Place('p1',
-        'Manhattan Mansion',
-        'In the heart of NYC',
-        'https://img-vimbly-com-images.imgix.net/full_photos/manhattan-night-tour-1.jpg?auto=compress&fit=crop&h=490&ixlib=php-1.2.1&w=730',
-        149.99,
-        new Date('2019-01-01'),
-        new Date('2019-12-01'),
-        'abc'),
-      new Place('p2',
-        'Amour Toujours',
-        'A romantic place in Paris',
-        'https://stillmed.olympic.org/media/Images/OlympicOrg/News/2019/11/27/2019-11-27-paris-thumbnail.jpg',
-        249.99,
-        new Date('2018-01-01'),
-        new Date('2019-12-01'),
-        'abc'),
-      new Place('p3',
-        'The Foggy Palace',
-        'Not Your Average City Trip',
-        'https://i.pinimg.com/originals/18/30/b1/1830b1e06b0d68f0cab6809609ddc4cf.jpg',
-        99.99,
-        new Date('2017-01-01'),
-        new Date('2019-12-01'),
-        'abc')
-    ]
-  );
+  private BASE_URL = "https://ionic-angular-4a8f8-default-rtdb.firebaseio.com";
+  private _places = new BehaviorSubject<Place[]>([]);
 
   constructor(private authService: AuthService,
               private http: HttpClient) {}
 
   get places() {
     return this._places.asObservable();
+  }
+
+  fetchPlaces() {
+    return this.http.get<{[key: string]: PlaceData}>(this.BASE_URL + '/offered-places.json')
+      .pipe(
+        map(resData => {
+          const places = [];
+
+          for (const key in resData) {
+            places.push(new Place(key, resData[key].title, resData[key].description,
+              resData[key].imageUrl, resData[key].price,
+              new Date(resData[key].availableFrom), new Date(resData[key].availableTo),
+              resData[key].userId));
+          }
+
+          return places;
+        }),
+        tap(places => {
+          this._places.next(places);
+        })
+      );
   }
 
   getPlace(id: string) {
@@ -57,7 +62,7 @@ export class PlacesService {
         "https://static.wikia.nocookie.net/cyberpunk/images/1/1c/NC-Profile-2077-Placeholder.jpg/revision/latest?cb=20200501024902",
         price, dateFrom, dateTo, this.authService.userId);
 
-      return this.http.post<{name: string}>('https://ionic-angular-4a8f8-default-rtdb.firebaseio.com/offered-places.json',
+      return this.http.post<{name: string}>(this.BASE_URL + '/offered-places.json',
         {
           ...newPlace,
           id: null
