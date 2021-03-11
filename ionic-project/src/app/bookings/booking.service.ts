@@ -2,15 +2,18 @@ import { Injectable } from '@angular/core';
 import {Booking} from "./booking.model";
 import {BehaviorSubject} from "rxjs";
 import {AuthService} from "../auth/auth.service";
-import {delay, take, tap} from "rxjs/operators";
+import {delay, switchMap, take, tap} from "rxjs/operators";
+import {HttpClient} from "@angular/common/http";
 
 @Injectable({
   providedIn: 'root'
 })
 export class BookingService {
+  private BASE_URL = "https://ionic-angular-4a8f8-default-rtdb.firebaseio.com";
   private _bookings = new BehaviorSubject<Booking[]>([]);
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService,
+              private httpClient: HttpClient) { }
 
   get bookings() {
     return this._bookings.asObservable();
@@ -23,12 +26,17 @@ export class BookingService {
       this.authService.userId, placeTitle, placeImage, firstName, lastName,
       guestNumber, dateFrom, dateTo);
 
-    return this.bookings.pipe(
+    return this.httpClient.post<{name: string}>(`${this.BASE_URL}/bookings.json`,
+      {...this.bookings, id: null}
+      ).pipe(switchMap(resData => {
+        newBooking.id = resData.name;
+        return this.bookings;
+      }),
       take(1),
-      delay(1000),
       tap(bookings => {
         this._bookings.next(bookings.concat(newBooking));
-      }));
+      })
+    );
   }
 
   cancelBook(bookingId: string) {
