@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
-import {LoadingController, NavController} from "@ionic/angular";
+import {AlertController, LoadingController, NavController} from "@ionic/angular";
 import {PlacesService} from "../../places.service";
 import {Place} from "../../place.model";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
@@ -22,7 +22,8 @@ export class EditOfferPage implements OnInit, OnDestroy {
               private navCtrl: NavController,
               private placesService: PlacesService,
               private router: Router,
-              private loadingController: LoadingController) { }
+              private loadingController: LoadingController,
+              private alertController: AlertController) { }
 
   ngOnInit() {
     this.route.paramMap.subscribe(paramMap => {
@@ -49,6 +50,21 @@ export class EditOfferPage implements OnInit, OnDestroy {
           });
 
           this.isLoading = false;
+        }, error => {
+          this.alertController.create({
+            header: 'An error occurred!',
+            message: 'Place could not be fetched. Please try again later',
+            buttons: [
+              {
+                text: 'Okay',
+                handler: () => {
+                  this.router.navigate(['/places/tabs/offers']);
+                }
+              }
+            ]
+          }).then(alertEl => {
+            alertEl.present();
+          })
         });
     });
   }
